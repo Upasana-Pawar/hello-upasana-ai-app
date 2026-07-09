@@ -1,0 +1,6 @@
+{
+  "name": "AI Journey",
+  "description": "Celebrating learning milestones in the era of Agentic Engineering",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
