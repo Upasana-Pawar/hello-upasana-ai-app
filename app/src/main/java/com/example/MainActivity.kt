@@ -129,8 +129,8 @@ fun MilestoneDashboard(modifier: Modifier = Modifier) {
                 onBeginDay2Click = {
                     if (currentDay == 1) {
                         currentDay = 2
-                        showCelebrationDialog = true
                     }
+                    showCelebrationDialog = true
                 }
             )
         }
@@ -253,7 +253,7 @@ fun MilestoneProgressCard(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = if (currentDay == 1) "Day 1 Complete" else "Day 2 Active",
+                    text = if (currentDay == 1) "Day 1 Complete" else "Day 2 Complete",
                     style = MaterialTheme.typography.headlineSmall,
                     color = SleekPurpleDark,
                     fontWeight = FontWeight.Bold
@@ -452,14 +452,14 @@ fun FooterSection(
                     spotColor = SleekPurple.copy(alpha = 0.4f)
                 ),
             shape = RoundedCornerShape(28.dp),
-            enabled = currentDay == 1
+            enabled = true
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = if (currentDay == 1) "Begin Day 2: Architecture Setup" else "Day 2 Initiated!",
+                    text = if (currentDay == 1) "Begin Day 2: Architecture Setup" else "Ready for Day 3: Cloud Run Deployment",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -510,7 +510,7 @@ fun CelebrationDialog(currentDay: Int, onDismiss: () -> Unit) {
                     modifier = Modifier.size(28.dp)
                 )
                 Text(
-                    text = if (currentDay == 1) "Day 1 Mastered!" else "Day 2 Active!",
+                    text = if (currentDay == 1) "Day 1 Mastered!" else "Day 2 Complete!",
                     color = SleekPurpleDark,
                     fontWeight = FontWeight.Bold
                 )
@@ -521,7 +521,7 @@ fun CelebrationDialog(currentDay: Int, onDismiss: () -> Unit) {
                 text = if (currentDay == 1) {
                     "Superb effort, Upasana! Day 1 is successfully verified. Tap to begin Day 2!"
                 } else {
-                    "Day 2 Architecture Setup active! The third reward is officially unlocked, preparing you with clean architectural blueprints."
+                    "Day 2 Architecture Setup is successfully Completed! The third reward is officially unlocked, preparing you for Day 3: Cloud Run Deployment."
                 },
                 color = SleekTextSecondary,
                 lineHeight = 20.sp
