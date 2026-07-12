@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Journey - Day 2 Milestone</title>
+    <title>AI Journey - Tokyo Night Dashboard</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter & Space Grotesk -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Inter, Space Grotesk, JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -16,12 +16,18 @@
         .heading-font {
             font-family: 'Space Grotesk', sans-serif;
         }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-full text-[#c0caf5] px-6 py-8 md:py-12 max-w-lg mx-auto selection:bg-[#3f446b] selection:text-[#ff9e64]">
 
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col gap-3 w-[90%] max-w-md"></div>
+
     <!-- Header Section -->
-    <header class="mb-8 animate-fade-in">
+    <header class="mb-6">
         <div class="flex items-center gap-2 mb-3">
             <span class="flex h-3 w-3 relative">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#73daca] opacity-75"></span>
@@ -38,56 +44,165 @@
         </p>
     </header>
 
-    <!-- Milestone & Progress Card (Visual Focus) -->
-    <section class="mb-8">
-        <div class="relative bg-[#24283b] rounded-3xl p-6 md:p-8 border border-[#383e5a] shadow-xl overflow-hidden group">
+    <!-- COURSE DASHBOARD PROGRESS TRACKER (RETRO-FUTURISTIC MENUS) -->
+    <section class="mb-6">
+        <h3 class="text-xs font-bold text-[#565f89] uppercase tracking-widest mb-3 px-1">
+            Course Dashboard & Tracker
+        </h3>
+        <!-- Tracker Buttons with neon glowing borders & states -->
+        <div class="grid grid-cols-3 gap-2 bg-[#24283b]/40 p-2 rounded-2xl border border-[#383e5a]">
+            <!-- Day 2 (Always Completed) -->
+            <button id="btn-day2" onclick="selectDay(2)" class="py-3 px-1 rounded-xl text-center transition-all duration-300 font-bold text-xs flex flex-col items-center gap-1 bg-[#1a1b26] border border-[#73daca]/30 text-[#73daca]">
+                <span>Day 2</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-[#73daca]/10 text-[#73daca]">✓ Completed</span>
+            </button>
+            
+            <!-- Day 3 (Interactive completion) -->
+            <button id="btn-day3" onclick="selectDay(3)" class="py-3 px-1 rounded-xl text-center transition-all duration-300 font-bold text-xs flex flex-col items-center gap-1 bg-[#24283b] border border-transparent text-[#ff9e64]">
+                <span>Day 3</span>
+                <span id="badge-day3" class="text-[9px] px-1.5 py-0.5 rounded-full bg-[#ff9e64]/10 text-[#ff9e64]">⚡ Ready</span>
+            </button>
+
+            <!-- Day 4 (Locked by default, unlocked upon completing Day 3) -->
+            <button id="btn-day4" onclick="selectDay(4)" disabled class="py-3 px-1 rounded-xl text-center transition-all duration-300 font-bold text-xs flex flex-col items-center gap-1 opacity-50 cursor-not-allowed text-[#565f89] bg-transparent border border-transparent">
+                <span>Day 4</span>
+                <span id="badge-day4" class="text-[9px] px-1.5 py-0.5 rounded-full bg-[#565f89]/20 text-[#565f89]">🔒 Locked</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- Milestone & Progress Card (Dynamic visual focus card) -->
+    <section class="mb-6">
+        <div id="progress-card" class="relative bg-[#24283b] rounded-3xl p-6 md:p-8 border border-[#383e5a] shadow-xl overflow-hidden group">
             <!-- Subtle Radial Gradient Background Glow -->
-            <div class="absolute -right-16 -top-16 w-32 h-32 bg-[#bb9af3]/15 rounded-full blur-2xl transition-all duration-500 group-hover:bg-[#bb9af3]/25"></div>
+            <div id="card-glow" class="absolute -right-16 -top-16 w-32 h-32 bg-[#bb9af3]/15 rounded-full blur-2xl transition-all duration-500 group-hover:bg-[#bb9af3]/25"></div>
             
             <div class="flex flex-col items-center text-center">
                 <!-- Glowing Badge Visual -->
-                <div class="w-20 h-20 bg-[#1a1b26] rounded-full flex items-center justify-center shadow-inner border-2 border-[#7aa2f7] mb-4 relative">
-                    <span class="text-3xl">🚀</span>
+                <div id="badge-outer" class="w-20 h-20 bg-[#1a1b26] rounded-full flex items-center justify-center shadow-inner border-2 border-[#bb9af3] mb-4 relative transition-all duration-500">
+                    <span id="badge-emoji" class="text-3xl">🛸</span>
                     <!-- Miniature Completed Dot -->
-                    <span class="absolute bottom-0 right-0 h-5 w-5 bg-[#73daca] border-2 border-[#24283b] rounded-full flex items-center justify-center text-[10px] text-[#1a1b26] font-bold">✓</span>
+                    <span id="badge-status-dot" class="absolute bottom-0 right-0 h-5 w-5 bg-[#73daca] border-2 border-[#24283b] rounded-full flex items-center justify-center text-[10px] text-[#1a1b26] font-bold">✓</span>
                 </div>
 
-                <h2 class="text-xl md:text-2xl font-bold text-white heading-font mb-1">Day 2 status: {{ data.day_2_status }}</h2>
-                <p class="text-[#9ab1e5] text-xs uppercase tracking-wider font-semibold mb-6">Milestone 2 of 5 completed</p>
+                <h2 id="card-status-title" class="text-xl md:text-2xl font-bold text-white heading-font mb-1">Day 2 Status: COMPLETED</h2>
+                <p id="card-status-desc" class="text-[#9ab1e5] text-xs uppercase tracking-wider font-semibold mb-6">Milestone 2 of 5 completed</p>
 
                 <!-- Progress Bar -->
                 <div class="w-full space-y-2">
                     <div class="flex justify-between text-xs font-semibold text-[#a9b1d6]">
-                        <span>Official Start</span>
-                        <span class="text-[#73daca]">40% Progress</span>
+                        <span>Track Progress</span>
+                        <span id="progress-percentage" class="text-[#7aa2f7]">40% Progress</span>
                     </div>
                     <!-- Outer container -->
                     <div class="h-3 w-full bg-[#1a1b26] rounded-full p-0.5 overflow-hidden border border-[#383e5a]">
-                        <!-- Colored progress bar filling 40% -->
-                        <div class="h-full w-2/5 bg-gradient-to-r from-[#7aa2f7] to-[#bb9af3] rounded-full shadow-[0_0_8px_rgba(122,162,247,0.5)]"></div>
+                        <!-- Colored progress bar -->
+                        <div id="progress-fill" class="h-full w-2/5 bg-gradient-to-r from-[#7aa2f7] to-[#bb9af3] rounded-full shadow-[0_0_8px_rgba(122,162,247,0.5)] transition-all duration-700"></div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Rewards & Accomplishments Section -->
-    <section class="mb-8">
-        <h3 class="text-xs font-bold text-[#565f89] uppercase tracking-widest mb-4 px-1">
-            Day 2 Refactored Milestones
+    <!-- Dynamic Phase Content Section -->
+    <section class="mb-6">
+        <h3 id="phase-title" class="text-xs font-bold text-[#565f89] uppercase tracking-widest mb-4 px-1">
+            Day 2 Completed Milestones
         </h3>
-        <div class="flex flex-col gap-3">
-            {% for milestone in data.milestones %}
+
+        <!-- Day 2 Milestones list -->
+        <div id="phase-day2-list" class="flex flex-col gap-3">
             <div class="bg-[#24283b]/60 hover:bg-[#24283b] p-4 rounded-2xl border border-[#383e5a] flex items-start gap-4 transition-all duration-300">
-                <div class="w-10 h-10 bg-[#1a1b26] border border-[#565f89]/30 rounded-xl flex items-center justify-center text-[#73daca] shrink-0 font-mono text-sm font-bold">
-                    0{{ loop.index }}
-                </div>
+                <div class="w-10 h-10 bg-[#1a1b26] border border-[#73daca]/30 rounded-xl flex items-center justify-center text-[#73daca] shrink-0 font-mono text-sm font-bold">01</div>
                 <div class="flex flex-col">
-                    <span class="text-sm font-semibold text-white leading-tight mb-1">{{ milestone }}</span>
+                    <span class="text-sm font-semibold text-white leading-tight mb-1">Dynamic Flask Application Build</span>
                     <span class="text-xs text-[#a9b1d6]">Jinja2 Template Rendered • Local Verified</span>
                 </div>
             </div>
-            {% endfor %}
+            <div class="bg-[#24283b]/60 hover:bg-[#24283b] p-4 rounded-2xl border border-[#383e5a] flex items-start gap-4 transition-all duration-300">
+                <div class="w-10 h-10 bg-[#1a1b26] border border-[#73daca]/30 rounded-xl flex items-center justify-center text-[#73daca] shrink-0 font-mono text-sm font-bold">02</div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-white leading-tight mb-1">Custom Dockerfile Architecture Set Up</span>
+                    <span class="text-xs text-[#a9b1d6]">Jinja2 Template Rendered • Local Verified</span>
+                </div>
+            </div>
+            <div class="bg-[#24283b]/60 hover:bg-[#24283b] p-4 rounded-2xl border border-[#383e5a] flex items-start gap-4 transition-all duration-300">
+                <div class="w-10 h-10 bg-[#1a1b26] border border-[#73daca]/30 rounded-xl flex items-center justify-center text-[#73daca] shrink-0 font-mono text-sm font-bold">03</div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-white leading-tight mb-1">Model Context Protocol (MCP) Server Integrated</span>
+                    <span class="text-xs text-[#a9b1d6]">Jinja2 Template Rendered • Local Verified</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 3 Milestones & Diagnostics Controls -->
+        <div id="phase-day3-list" class="hidden flex flex-col gap-3">
+            <!-- Loading state container -->
+            <div id="day3-loading-card" class="hidden bg-[#24283b]/50 p-6 rounded-2xl border border-[#ff9e64]/30 flex flex-col items-center justify-center text-center gap-4">
+                <div class="w-10 h-10 border-4 border-[#ff9e64] border-t-transparent rounded-full animate-spin"></div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-bold text-[#ff9e64] code-font mb-1 animate-pulse">Running Day 3 Agent Cloud Diagnostics...</span>
+                    <span class="text-xs text-[#a9b1d6]">Analyzing Google-Agents-CLI & configuring build parameters...</span>
+                </div>
+            </div>
+
+            <!-- Idle / Diagnostic trigger card -->
+            <div id="day3-idle-card" class="bg-[#24283b]/40 hover:bg-[#24283b]/60 p-5 rounded-2xl border border-dashed border-[#565f89] text-center transition-all duration-300">
+                <p class="text-sm text-[#a9b1d6] mb-4">Diagnostics build has not been run. Press the diagnostics trigger below to verify Google-Agents-CLI setup.</p>
+                <button onclick="triggerDay3Diagnostics()" class="bg-gradient-to-r from-[#ff9e64] to-[#f7768e] text-[#1a1b26] font-bold text-xs py-2.5 px-6 rounded-xl hover:shadow-[0_0_12px_rgba(255,158,100,0.4)] transition-all">
+                    Run Day 3 Diagnostics Build
+                </button>
+            </div>
+
+            <!-- Dynamic Day 3 Content items (Shown after Diagnostics) -->
+            <div id="day3-completed-content" class="hidden flex flex-col gap-3">
+                <div class="bg-[#24283b]/60 hover:bg-[#24283b] p-4 rounded-2xl border border-[#383e5a] flex items-start gap-4 transition-all duration-300 animate-fade-in">
+                    <div class="w-10 h-10 bg-[#1a1b26] border border-[#73daca]/30 rounded-xl flex items-center justify-center text-[#73daca] shrink-0 font-mono text-sm font-bold">01</div>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-semibold text-white leading-tight mb-1">Google-Agents-CLI Configured</span>
+                        <span class="text-xs text-[#a9b1d6]">Google Agents CLI System • Ready</span>
+                    </div>
+                </div>
+                <div class="bg-[#24283b]/60 hover:bg-[#24283b] p-4 rounded-2xl border border-[#383e5a] flex items-start gap-4 transition-all duration-300 animate-fade-in">
+                    <div class="w-10 h-10 bg-[#1a1b26] border border-[#73daca]/30 rounded-xl flex items-center justify-center text-[#73daca] shrink-0 font-mono text-sm font-bold">02</div>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-semibold text-white leading-tight mb-1">Cloud Run Target Environment Initialized</span>
+                        <span class="text-xs text-[#a9b1d6]">GCP Cloud Target Environment • Configured</span>
+                    </div>
+                </div>
+                <div class="bg-[#24283b]/60 hover:bg-[#24283b] p-4 rounded-2xl border border-[#383e5a] flex items-start gap-4 transition-all duration-300 animate-fade-in">
+                    <div class="w-10 h-10 bg-[#1a1b26] border border-[#73daca]/30 rounded-xl flex items-center justify-center text-[#73daca] shrink-0 font-mono text-sm font-bold">03</div>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-semibold text-white leading-tight mb-1">Docker Push Integration Verified</span>
+                        <span class="text-xs text-[#a9b1d6]">Platform CI Pipeline Verified • Online</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 4 Targets (Shown after Day 3 Completed) -->
+        <div id="phase-day4-list" class="hidden flex flex-col gap-3">
+            <div class="bg-[#24283b]/60 hover:bg-[#24283b] p-4 rounded-2xl border border-[#383e5a] flex items-start gap-4 transition-all duration-300 animate-fade-in">
+                <div class="w-10 h-10 bg-[#1a1b26] border border-[#7aa2f7]/30 rounded-xl flex items-center justify-center text-[#7aa2f7] shrink-0 font-mono text-sm font-bold">01</div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-white leading-tight mb-1">Live URL Endpoint Configured</span>
+                    <span class="text-xs text-[#a9b1d6]">Public Gateway Route • Online</span>
+                </div>
+            </div>
+            <div class="bg-[#24283b]/60 hover:bg-[#24283b] p-4 rounded-2xl border border-[#383e5a] flex items-start gap-4 transition-all duration-300 animate-fade-in">
+                <div class="w-10 h-10 bg-[#1a1b26] border border-[#7aa2f7]/30 rounded-xl flex items-center justify-center text-[#7aa2f7] shrink-0 font-mono text-sm font-bold">02</div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-white leading-tight mb-1">Continuous Integration Pipeline Active</span>
+                    <span class="text-xs text-[#a9b1d6]">GitHub Trigger Autodeploy • Listening</span>
+                </div>
+            </div>
+            <div class="bg-[#24283b]/60 hover:bg-[#24283b] p-4 rounded-2xl border border-[#383e5a] flex items-start gap-4 transition-all duration-300 animate-fade-in">
+                <div class="w-10 h-10 bg-[#1a1b26] border border-[#7aa2f7]/30 rounded-xl flex items-center justify-center text-[#7aa2f7] shrink-0 font-mono text-sm font-bold">03</div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-white leading-tight mb-1">Production Monitoring Operational</span>
+                    <span class="text-xs text-[#a9b1d6]">Stackdriver Logging • Active</span>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -99,15 +214,237 @@
             </p>
         </div>
         
-        <!-- Button Prepared for Day 3 Deployment -->
-        <button class="w-full bg-[#7aa2f7] hover:bg-[#89b4fa] active:scale-[0.99] text-[#1a1b26] py-4 px-6 rounded-2xl font-bold text-sm md:text-base shadow-lg shadow-[#7aa2f7]/20 transition-all flex items-center justify-center gap-2">
-            <span>Ready for Day 3: Cloud Run Deployment</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="animate-bounce-horizontal"><path d="M5 12h14m-7-7l7 7-7 7"/></svg>
+        <!-- Button Prepared for Next Stage -->
+        <button id="footer-action-btn" onclick="footerActionClick()" class="w-full bg-[#7aa2f7] hover:bg-[#89b4fa] active:scale-[0.99] text-[#1a1b26] py-4 px-6 rounded-2xl font-bold text-sm md:text-base shadow-lg shadow-[#7aa2f7]/20 transition-all flex items-center justify-center gap-2">
+            <span id="footer-btn-text">Proceed to Day 3 Setup</span>
+            <svg id="footer-btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="animate-bounce-horizontal"><path d="M5 12h14m-7-7l7 7-7 7"/></svg>
         </button>
         
         <!-- Modern Home Gesture Bar Decorator -->
         <div class="h-1 w-28 bg-[#383e5a] rounded-full mx-auto"></div>
     </footer>
 
+    <!-- INTERACTIVE JAVASCRIPT LOGIC -->
+    <script>
+        let currentActiveDay = 2;
+        let isDay3Completed = false;
+        let isDay3Loading = false;
+        let isDay4Triggered = false;
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-[#24283b] border-2 border-[#73daca] text-white px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-500 opacity-0 transform translate-y-3 pointer-events-auto';
+            toast.innerHTML = `
+                <div class="w-8 h-8 bg-[#73daca]/20 rounded-full flex items-center justify-center text-[#73daca]">🎉</div>
+                <div class="text-xs font-semibold leading-relaxed">${message}</div>
+            `;
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-3');
+            }, 50);
+
+            // Hide and remove after 4.5 seconds
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y--3');
+                setTimeout(() => {
+                    toast.remove();
+                }, 500);
+            }, 4500);
+        }
+
+        function selectDay(day) {
+            if (day === 3) {
+                currentActiveDay = 3;
+                showDay3View();
+                if (!isDay3Completed && !isDay3Loading) {
+                    triggerDay3Diagnostics();
+                }
+            } else if (day === 4) {
+                if (isDay3Completed) {
+                    currentActiveDay = 4;
+                    isDay4Triggered = true;
+                    showDay4View();
+                    // Day 4 message update
+                    alert("🚀 Initializing Day 4: Live Cloud Deployment Phase Triggered.");
+                }
+            } else {
+                currentActiveDay = 2;
+                showDay2View();
+            }
+            updateNavigationAndProgress();
+        }
+
+        function triggerDay3Diagnostics() {
+            if (isDay3Completed || isDay3Loading) return;
+            
+            isDay3Loading = true;
+            document.getElementById('day3-idle-card').classList.add('hidden');
+            document.getElementById('day3-loading-card').classList.remove('hidden');
+            
+            updateNavigationAndProgress();
+
+            setTimeout(() => {
+                isDay3Loading = false;
+                isDay3Completed = true;
+                
+                document.getElementById('day3-loading-card').classList.add('hidden');
+                document.getElementById('day3-completed-content').classList.remove('hidden');
+                
+                // Unlock Day 4 Tab
+                const btnDay4 = document.getElementById('btn-day4');
+                btnDay4.removeAttribute('disabled');
+                btnDay4.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnDay4.classList.add('hover:bg-[#24283b]', 'text-[#7aa2f7]');
+                document.getElementById('badge-day4').className = 'text-[9px] px-1.5 py-0.5 rounded-full bg-[#7aa2f7]/10 text-[#7aa2f7]';
+                document.getElementById('badge-day4').innerText = '🚀 Ready';
+
+                // Update badge state
+                document.getElementById('badge-day3').className = 'text-[9px] px-1.5 py-0.5 rounded-full bg-[#73daca]/10 text-[#73daca]';
+                document.getElementById('badge-day3').innerText = '✓ Loaded';
+
+                showToast("🎉 Day 3 Completed: Google-Agents-CLI & Cloud Run Architecture Loaded!");
+                
+                updateNavigationAndProgress();
+                if (currentActiveDay === 3) {
+                    showDay3View();
+                }
+            }, 2500);
+        }
+
+        function showDay2View() {
+            document.getElementById('phase-title').innerText = "Day 2 Completed Milestones";
+            document.getElementById('phase-day2-list').classList.remove('hidden');
+            document.getElementById('phase-day3-list').classList.add('hidden');
+            document.getElementById('phase-day4-list').classList.add('hidden');
+        }
+
+        function showDay3View() {
+            document.getElementById('phase-title').innerText = isDay3Completed ? "Day 3 Loaded Architecture" : "Day 3 Required Diagnostics";
+            document.getElementById('phase-day2-list').classList.add('hidden');
+            document.getElementById('phase-day3-list').classList.remove('hidden');
+            document.getElementById('phase-day4-list').classList.add('hidden');
+
+            if (isDay3Completed) {
+                document.getElementById('day3-idle-card').classList.add('hidden');
+                document.getElementById('day3-loading-card').classList.add('hidden');
+                document.getElementById('day3-completed-content').classList.remove('hidden');
+            } else if (isDay3Loading) {
+                document.getElementById('day3-idle-card').classList.add('hidden');
+                document.getElementById('day3-loading-card').classList.remove('hidden');
+            } else {
+                document.getElementById('day3-idle-card').classList.remove('hidden');
+                document.getElementById('day3-loading-card').classList.add('hidden');
+            }
+        }
+
+        function showDay4View() {
+            document.getElementById('phase-title').innerText = "Day 4 Live Deployment Targets";
+            document.getElementById('phase-day2-list').classList.add('hidden');
+            document.getElementById('phase-day3-list').classList.add('hidden');
+            document.getElementById('phase-day4-list').classList.remove('hidden');
+        }
+
+        function updateNavigationAndProgress() {
+            // Update Tab button visual styling
+            const tabs = [
+                { id: 'btn-day2', active: currentActiveDay === 2, colorClass: 'text-[#73daca]', borderClass: 'border-[#73daca]/30' },
+                { id: 'btn-day3', active: currentActiveDay === 3, colorClass: isDay3Completed ? 'text-[#73daca]' : 'text-[#ff9e64]', borderClass: isDay3Completed ? 'border-[#73daca]/30' : 'border-[#ff9e64]/30' },
+                { id: 'btn-day4', active: currentActiveDay === 4, colorClass: 'text-[#7aa2f7]', borderClass: 'border-[#7aa2f7]/30' }
+            ];
+
+            tabs.forEach(tab => {
+                const el = document.getElementById(tab.id);
+                if (tab.active) {
+                    el.className = `py-3 px-1 rounded-xl text-center transition-all duration-300 font-bold text-xs flex flex-col items-center gap-1 bg-[#1a1b26] border ${tab.borderClass} ${tab.colorClass}`;
+                } else {
+                    const disabled = el.hasAttribute('disabled');
+                    if (disabled) {
+                        el.className = 'py-3 px-1 rounded-xl text-center transition-all duration-300 font-bold text-xs flex flex-col items-center gap-1 opacity-50 cursor-not-allowed text-[#565f89] bg-transparent border border-transparent';
+                    } else {
+                        el.className = 'py-3 px-1 rounded-xl text-center transition-all duration-300 font-bold text-xs flex flex-col items-center gap-1 bg-transparent hover:bg-[#24283b] border border-transparent text-[#a9b1d6]';
+                    }
+                }
+            });
+
+            // Update Milestone Progress Card details
+            const progressFill = document.getElementById('progress-fill');
+            const progressPercentage = document.getElementById('progress-percentage');
+            const cardStatusTitle = document.getElementById('card-status-title');
+            const cardStatusDesc = document.getElementById('card-status-desc');
+            const badgeEmoji = document.getElementById('badge-emoji');
+            const badgeOuter = document.getElementById('badge-outer');
+
+            let progressWidth = "40%";
+            let progressText = "40% Progress";
+            let statusTitle = "Day 2 Status: COMPLETED";
+            let statusDesc = "Milestone 2 of 5 completed";
+            let emoji = "🛸";
+            let borderCol = "border-[#bb9af3]";
+
+            if (isDay4Triggered) {
+                progressWidth = "80%";
+                progressText = "80% Progress";
+                statusTitle = "Day 4 Status: INITIATED";
+                statusDesc = "Milestone 4 of 5 completed";
+                emoji = "🚀";
+                borderCol = "border-[#7aa2f7]";
+            } else if (isDay3Completed) {
+                progressWidth = "60%";
+                progressText = "60% Progress";
+                statusTitle = "Day 3 Status: COMPLETED";
+                statusDesc = "Milestone 3 of 5 completed";
+                emoji = "🏆";
+                borderCol = "border-[#73daca]";
+            } else if (isDay3Loading) {
+                progressWidth = "50%";
+                progressText = "50% Progress";
+                statusTitle = "Day 3 Status: DIAGNOSING...";
+                statusDesc = "Milestone 2 of 5 completed";
+                emoji = "⚡";
+                borderCol = "border-[#ff9e64]";
+            }
+
+            progressFill.style.width = progressWidth;
+            progressPercentage.innerText = progressText;
+            cardStatusTitle.innerText = statusTitle;
+            cardStatusDesc.innerText = statusDesc;
+            badgeEmoji.innerText = emoji;
+            badgeOuter.className = `w-20 h-20 bg-[#1a1b26] rounded-full flex items-center justify-center shadow-inner border-2 ${borderCol} mb-4 relative transition-all duration-500`;
+
+            // Update footer actions button
+            const footerBtnText = document.getElementById('footer-btn-text');
+            const footerActionBtn = document.getElementById('footer-action-btn');
+
+            if (currentActiveDay === 2) {
+                footerBtnText.innerText = "Proceed to Day 3 Setup";
+                footerActionBtn.className = "w-full bg-[#7aa2f7] hover:bg-[#89b4fa] text-[#1a1b26] py-4 px-6 rounded-2xl font-bold text-sm md:text-base shadow-lg shadow-[#7aa2f7]/20 transition-all flex items-center justify-center gap-2";
+            } else if (currentActiveDay === 3) {
+                if (isDay3Completed) {
+                    footerBtnText.innerText = "Advance to Day 4";
+                    footerActionBtn.className = "w-full bg-[#73daca] hover:bg-[#8ceecc] text-[#1a1b26] py-4 px-6 rounded-2xl font-bold text-sm md:text-base shadow-lg shadow-[#73daca]/20 transition-all flex items-center justify-center gap-2";
+                } else {
+                    footerBtnText.innerText = "Day 3 Diagnostics Required";
+                    footerActionBtn.className = "w-full bg-[#565f89] text-[#1a1b26] py-4 px-6 rounded-2xl font-bold text-sm md:text-base opacity-60 cursor-not-allowed transition-all flex items-center justify-center gap-2";
+                }
+            } else {
+                footerBtnText.innerText = "Live Cloud Deployment Phase Active";
+                footerActionBtn.className = "w-full bg-[#383e5a] text-[#565f89] py-4 px-6 rounded-2xl font-bold text-sm md:text-base cursor-not-allowed transition-all flex items-center justify-center gap-2";
+            }
+        }
+
+        function footerActionClick() {
+            if (currentActiveDay === 2) {
+                selectDay(3);
+            } else if (currentActiveDay === 3 && isDay3Completed) {
+                selectDay(4);
+            }
+        }
+
+        // Initialize state
+        updateNavigationAndProgress();
+    </script>
 </body>
 </html>
