@@ -23,8 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.CloudQueue
-import androidx.compose.material.icons.filled.Hub
-import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -82,7 +80,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MilestoneDashboard(modifier: Modifier = Modifier) {
-    var activeDay by remember { mutableStateOf(2) } // Selected dashboard view: 2, 3, or 4
+    var activeDay by remember { mutableStateOf(2) } // Selected dashboard view: 1, 2, 3, or 4
     var day3Completed by remember { mutableStateOf(false) }
     var day3Loading by remember { mutableStateOf(false) }
     var day4Triggered by remember { mutableStateOf(false) }
@@ -91,11 +89,13 @@ fun MilestoneDashboard(modifier: Modifier = Modifier) {
 
     val scrollState = rememberScrollState()
 
-    // Smooth progress indicator animation matching the track completion
-    val targetProgress = when {
-        day4Triggered -> 0.8f
-        day3Completed -> 0.6f
-        else -> 0.4f
+    // Smooth progress indicator animation matching the track completion of selected day
+    val targetProgress = when (activeDay) {
+        1 -> 0.25f
+        2 -> 0.50f
+        3 -> if (day3Completed) 0.75f else if (day3Loading) 0.62f else 0.50f
+        4 -> 1.00f
+        else -> 0.50f
     }
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
@@ -103,7 +103,7 @@ fun MilestoneDashboard(modifier: Modifier = Modifier) {
         label = "progressAnimation"
     )
 
-    // Simulate diagnostic loading
+    // Simulate diagnostic loading for Day 3
     LaunchedEffect(day3Loading) {
         if (day3Loading) {
             delay(2500)
@@ -143,19 +143,22 @@ fun MilestoneDashboard(modifier: Modifier = Modifier) {
                 day3Completed = day3Completed,
                 day3Loading = day3Loading,
                 onSelectDay = { day ->
-                    if (day == 3) {
-                        if (!day3Completed && !day3Loading) {
-                            day3Loading = true
+                    when (day) {
+                        1 -> activeDay = 1
+                        2 -> activeDay = 2
+                        3 -> {
+                            activeDay = 3
+                            if (!day3Completed && !day3Loading) {
+                                day3Loading = true
+                            }
                         }
-                        activeDay = 3
-                    } else if (day == 4) {
-                        if (day3Completed) {
-                            activeDay = 4
-                            day4Triggered = true
-                            showDialogMessage = "🚀 Initializing Day 4: Live Cloud Deployment Phase Triggered."
+                        4 -> {
+                            if (day3Completed) {
+                                activeDay = 4
+                                day4Triggered = true
+                                showDialogMessage = "🚀 Initializing Day 4: Live Cloud Deployment Phase Triggered."
+                            }
                         }
-                    } else {
-                        activeDay = 2
                     }
                 }
             )
@@ -168,6 +171,9 @@ fun MilestoneDashboard(modifier: Modifier = Modifier) {
                 day3Loading = day3Loading,
                 day4Triggered = day4Triggered
             )
+
+            // Dynamic Summary Panel
+            DynamicSummaryPanel(activeDay = activeDay)
 
             // 4. Milestone Task List for selected Active Day
             DynamicMilestonesList(
@@ -191,15 +197,21 @@ fun MilestoneDashboard(modifier: Modifier = Modifier) {
                 day3Completed = day3Completed,
                 day3Loading = day3Loading,
                 onActionButtonClick = {
-                    if (activeDay == 2) {
-                        activeDay = 3
-                        if (!day3Completed && !day3Loading) {
-                            day3Loading = true
+                    when (activeDay) {
+                        1 -> activeDay = 2
+                        2 -> {
+                            activeDay = 3
+                            if (!day3Completed && !day3Loading) {
+                                day3Loading = true
+                            }
                         }
-                    } else if (activeDay == 3 && day3Completed) {
-                        activeDay = 4
-                        day4Triggered = true
-                        showDialogMessage = "🚀 Initializing Day 4: Live Cloud Deployment Phase Triggered."
+                        3 -> {
+                            if (day3Completed) {
+                                activeDay = 4
+                                day4Triggered = true
+                                showDialogMessage = "🚀 Initializing Day 4: Live Cloud Deployment Phase Triggered."
+                            }
+                        }
                     }
                 }
             )
@@ -375,8 +387,40 @@ fun ProgressTrackerTabs(
                 .background(TokyoCard.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                 .border(1.dp, TokyoBorder, RoundedCornerShape(16.dp))
                 .padding(6.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            // Day 1 Tab
+            val day1Active = activeDay == 1
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (day1Active) TokyoCard else Color.Transparent)
+                    .border(
+                        width = 1.dp,
+                        color = if (day1Active) TokyoTeal.copy(alpha = 0.3f) else Color.Transparent,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clickable { onSelectDay(1) }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Day 1",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        color = if (day1Active) TokyoTeal else TokyoTextPrimary
+                    )
+                    Text(
+                        text = "✓ Done",
+                        fontSize = 9.sp,
+                        color = TokyoTeal,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
             // Day 2 Tab
             val day2Active = activeDay == 2
             Box(
@@ -434,7 +478,7 @@ fun ProgressTrackerTabs(
                     )
                     Text(
                         text = when {
-                            day3Loading -> "⚡ Diagnosing"
+                            day3Loading -> "⚡ Diag"
                             day3Completed -> "✓ Loaded"
                             else -> "⚡ Start"
                         },
@@ -473,7 +517,7 @@ fun ProgressTrackerTabs(
                         color = if (day4Active) TokyoBlue else (if (day4Enabled) TokyoTextPrimary else TokyoTextSecondary)
                     )
                     Text(
-                        text = if (day4Enabled) "🚀 Ready" else "🔒 Locked",
+                        text = if (day4Enabled) "🚀 Ready" else "🔒 Lock",
                         fontSize = 9.sp,
                         color = if (day4Enabled) TokyoBlue else TokyoTextSecondary,
                         fontWeight = FontWeight.SemiBold
@@ -522,10 +566,11 @@ fun InteractiveProgressCard(
                     .background(TokyoBg, CircleShape)
                     .border(
                         width = 2.dp,
-                        color = when {
-                            day4Triggered -> TokyoBlue
-                            day3Completed -> TokyoTeal
-                            day3Loading -> TokyoOrange
+                        color = when (activeDay) {
+                            1 -> TokyoTeal
+                            2 -> TokyoPurple
+                            3 -> if (day3Completed) TokyoTeal else TokyoOrange
+                            4 -> TokyoBlue
                             else -> TokyoPurple
                         },
                         shape = CircleShape
@@ -533,10 +578,11 @@ fun InteractiveProgressCard(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = when {
-                        day4Triggered -> "🚀"
-                        day3Completed -> "🏆"
-                        day3Loading -> "⚡"
+                    text = when (activeDay) {
+                        1 -> "🎯"
+                        2 -> "🛸"
+                        3 -> if (day3Completed) "🏆" else "⚡"
+                        4 -> "🚀"
                         else -> "🛸"
                     },
                     fontSize = 38.sp
@@ -549,10 +595,11 @@ fun InteractiveProgressCard(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = when {
-                        day4Triggered -> "Day 4 Initiated"
-                        day3Completed -> "Day 3 Completed"
-                        day3Loading -> "Day 3 Diagnosing..."
+                    text = when (activeDay) {
+                        1 -> "Day 1 Mastered"
+                        2 -> "Day 2 Completed"
+                        3 -> if (day3Completed) "Day 3 Completed" else if (day3Loading) "Day 3 Diagnosing..." else "Day 3 Ready"
+                        4 -> "Day 4 Initiated"
                         else -> "Day 2 Completed"
                     },
                     style = MaterialTheme.typography.titleLarge,
@@ -629,6 +676,7 @@ fun DynamicMilestonesList(
     ) {
         Text(
             text = when (activeDay) {
+                1 -> "DAY 1 MASTERED MILESTONES"
                 2 -> "DAY 2 COMPLETED MILESTONES"
                 3 -> if (day3Completed) "DAY 3 LOADED ARCHITECTURE" else "DAY 3 REQUIRED DIAGNOSTICS"
                 else -> "DAY 4 LIVE DEPLOYMENT TARGETS"
@@ -677,6 +725,11 @@ fun DynamicMilestonesList(
             }
         } else {
             val milestones = when (activeDay) {
+                1 -> listOf(
+                    "Local Workspace Initialization",
+                    "Aesthetic Theme Architecture Defined",
+                    "Hello World Core Flow Rendered"
+                )
                 2 -> listOf(
                     "Dynamic Flask Application Build",
                     "Custom Dockerfile Architecture Set Up",
@@ -696,6 +749,7 @@ fun DynamicMilestonesList(
 
             milestones.forEachIndexed { index, milestone ->
                 val badgeColor = when (activeDay) {
+                    1 -> TokyoTeal
                     2 -> TokyoTeal
                     3 -> if (day3Completed) TokyoTeal else TokyoOrange
                     else -> TokyoBlue
@@ -737,6 +791,7 @@ fun DynamicMilestonesList(
                             )
                             Text(
                                 text = when (activeDay) {
+                                    1 -> "Initial setup verified • Done"
                                     2 -> "Jinja2 Template Rendered • Local Verified"
                                     3 -> "Google Agents CLI System • Ready"
                                     else -> "GCP Cloud Target • Ready"
@@ -802,18 +857,21 @@ fun FooterActionSection(
         }
 
         val buttonEnabled = when (activeDay) {
+            1 -> true
             2 -> true
             3 -> day3Completed
             else -> false
         }
 
         val buttonColor = when (activeDay) {
+            1 -> TokyoTeal
             2 -> TokyoPurple
             3 -> TokyoBlue
             else -> TokyoTextSecondary
         }
 
         val buttonText = when (activeDay) {
+            1 -> "Proceed to Day 2 Details"
             2 -> "Proceed to Day 3 Setup"
             3 -> if (day3Completed) "Advance to Day 4" else "Day 3 Diagnostics Required"
             else -> "Live Cloud Deployment Phase Triggered"
@@ -868,6 +926,64 @@ fun FooterActionSection(
                 .height(5.dp)
                 .background(TokyoBorder, CircleShape)
         )
+    }
+}
+
+@Composable
+fun DynamicSummaryPanel(activeDay: Int) {
+    val title = when (activeDay) {
+        1 -> "🌌 [𝐃𝐚𝐲 𝟏: 𝐓𝐡𝐞 𝐌𝐢𝐬𝐬𝐢𝐨𝐧 𝐂𝐨𝐧𝐭𝐫𝐨𝐥 𝐑𝐨𝐨𝐦]"
+        2 -> "📂 [𝐃𝐚𝐲 𝟐: 𝐀𝐬𝐬𝐞𝐭 & 𝐋𝐨𝐠𝐢𝐜 𝐏𝐚𝐭𝐭𝐞𝐫𝐧𝐬]"
+        3 -> "📟 [𝐃𝐚𝐲 𝟑: 𝐀𝐠𝐞𝐧𝐭 𝐂𝐋𝐈 & 𝐂𝐥𝐨𝐮𝐝 𝐀𝐫𝐜𝐡𝐢𝐭𝐞𝐜𝐭𝐮𝐫𝐞]"
+        4 -> "🚀 [𝐃𝐚𝐲 𝟒: 𝐋𝐢𝐯𝐞 𝐂𝐥𝐨𝐮𝐝 𝐃𝐞𝐩𝐥𝐨𝐲𝐦𝐞𝐧𝐭]"
+        else -> ""
+    }
+    val summary = when (activeDay) {
+        1 -> "Set up the core Google Antigravity 2.0 framework and IDE architecture. Mapped out the autonomous agent execution engine across the Codebase, Terminal, and Browser layers. Established the ultimate agentic flywheel loop from mission assignment to visual auto-testing."
+        2 -> "Mastered multi-agent engineering by locking down 4 critical local architecture rules. Configured git-commit formatting boundaries, offloaded heavy resource headers to static templates, and used few-shot learning for strict JSON-to-Pydantic mappings. Forced a deterministic validation script loop to stop model hallucinations."
+        3 -> "Integrated local 'google-agents-cli' and Vercel's 'npx skills' to handle headless testing, package management, and project isolation workflows. Built a custom Dockerfile to containerize the Flask application environment. Configured Google Cloud Run variables, health checks, and serverless zero-scaling rules for rock-solid infrastructure."
+        4 -> "Transitioning from local blueprints to live automated staging pipelines. Wiring up our container images to Google Artifact Registry for secure distribution. Triggering the cloud runtime environment to launch our autonomous workforce into production for global availability."
+        else -> ""
+    }
+    
+    val accentColor = when (activeDay) {
+        1 -> TokyoTeal
+        2 -> TokyoPurple
+        3 -> TokyoOrange
+        4 -> TokyoBlue
+        else -> TokyoBlue
+    }
+
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = TokyoCard.copy(alpha = 0.8f)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(16.dp),
+                clip = false,
+                spotColor = accentColor.copy(alpha = 0.3f)
+            )
+            .border(1.2.dp, accentColor.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = TokyoTextBright
+            )
+            Text(
+                text = summary,
+                fontSize = 12.sp,
+                color = TokyoTextPrimary,
+                lineHeight = 18.sp
+            )
+        }
     }
 }
 
